@@ -2,11 +2,17 @@
 
 @section('content')
 <div class="container mt-5 mb-5">
-    <h2 class="mb-5 text-center" style="font-weight:700;letter-spacing:0.05em;">PRODUK</h2>
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4">
+    <h2 class="mb-5 text-center" style="font-weight:400;letter-spacing:0.05em;">PRODUK</h2>
+    <form method="GET" action="" class="mb-4" style="max-width:400px;margin:0 auto;">
+        <div class="input-group">
+            <input type="text" class="form-control" name="q" placeholder="Cari produk..." value="{{ request('q') }}">
+            <button class="btn btn-outline-secondary" type="submit">Cari</button>
+        </div>
+    </form>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-5">
         @foreach($products as $product)
         <div class="col">
-            <div class="card border-0 bg-transparent text-center h-100">
+            <div class="card border-0 bg-transparent text-center h-100 mb-4">
                 <a href="{{ route('user.products.show', $product->id) }}" style="text-decoration:none;">
                     @if($product->image)
                         <img src="{{ $product->image }}" class="card-img-top mb-3" style="height:200px;object-fit:cover;box-shadow:0 2px 8px rgba(0,0,0,0.04);">

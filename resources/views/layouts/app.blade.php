@@ -3,19 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meuble E-Commerce</title>
+    <title>Meuble</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
     .navbar.bg-white .navbar-nav .nav-link, .navbar.bg-white .navbar-brand {
         color: #222 !important;
-        font-weight: 500;
+        font-weight: 400;
     }
     .navbar.bg-white .nav-link.active, .navbar.bg-white .nav-link:focus, .navbar.bg-white .nav-link:hover {
         color: #000 !important;
     }
+    .navbar.bg-white .nav-link {
+        position: relative;
+        transition: color 0.2s;
+    }
+    .navbar.bg-white .nav-link::after {
+        content: '';
+        display: block;
+        position: absolute;
+        left: 0; right: 0; bottom: 0;
+        height: 2px;
+        background: #222;
+        transform: scaleX(0);
+        transition: transform 0.2s;
+    }
+    .navbar.bg-white .nav-link:hover::after, .navbar.bg-white .nav-link:focus::after, .navbar.bg-white .nav-link.active::after {
+        transform: scaleX(1);
+    }
     </style>
 </head>
 <body style="padding-top:56px;">
+    @hasSection('navbar')
+        @yield('navbar')
+    @else
     <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm" style="z-index:1040;">
         <div class="container">
             @if(!auth()->check() || (auth()->check() && auth()->user()->role === 'user'))
@@ -41,51 +61,69 @@
             </ul>
             @endif
             <div class="collapse navbar-collapse">
-                <ul class="navbar-nav ms-auto">
-                    @auth
-                        @if(request()->routeIs('user.profile') && auth()->user()->role === 'user')
+                @if(auth()->check() && auth()->user()->role === 'admin')
+                    <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('user.transactions.index') }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zm0 10c-4.418 0-8-1.79-8-4V7a2 2 0 012-2h2.586a1 1 0 01.707.293l1.414 1.414A1 1 0 0011.414 7H20a2 2 0 012 2v7c0 2.21-3.582 4-8 4z" /></svg>
-                                Riwayat Transaksi
-                            </a>
+                            <form action="/logout" method="POST" class="d-inline">
+                                @csrf
+                                <button type="submit" class="nav-link btn btn-link" style="padding:0;">Logout</button>
+                            </form>
                         </li>
-                        @endif
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('user.profile') }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9 9 0 1112 21a8.963 8.963 0 01-6.879-3.196z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                Profil
-                            </a>
-                        </li>
-                        @if(auth()->user()->role === 'user')
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('user.cart.index') }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 2.7A2 2 0 008.48 19h7.04a2 2 0 001.83-1.3L17 13M7 13V6a1 1 0 011-1h5a1 1 0 011 1v7" /></svg>
-                                Keranjang
-                            </a>
-                        </li>
-                        @endif
-                        {{-- Logout dipindahkan ke halaman profil --}}
-                    @else
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('login') }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9 9 0 1112 21a8.963 8.963 0 01-6.879-3.196z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                Profil
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('login') }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 2.7A2 2 0 008.48 19h7.04a2 2 0 001.83-1.3L17 13M7 13V6a1 1 0 011-1h5a1 1 0 011 1v7" /></svg>
-                                Keranjang
-                            </a>
-                        </li>
-                    @endauth
-                </ul>
+                    </ul>
+                @else
+                    <ul class="navbar-nav ms-auto">
+                        @auth
+                            @if(auth()->user()->role === 'user')
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ auth()->check() ? route('user.profile') : route('login') }}" title="Profil">
+                                    <!-- User Icon Feather/Lucide -->
+                                    <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ auth()->check() ? route('user.cart.index') : route('login') }}" title="Keranjang">
+                                    <!-- Cart Icon Feather/Lucide -->
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('user.transactions.index') }}" title="Riwayat Transaksi">
+                                    <!-- Clock Icon Feather/Lucide -->
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                      <circle cx="12" cy="12" r="10"/>
+                                      <polyline points="12 6 12 12 16 14"/>
+                                    </svg>
+                                </a>
+                            </li>
+                            @endif
+                            {{-- Logout dipindahkan ke halaman profil --}}
+                        @else
+                            @if(!request()->routeIs('login') && !request()->routeIs('register'))
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('login') }}">Login</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('register') }}">Register</a>
+                                </li>
+                            @endif
+                        @endauth
+                    </ul>
+                @endif
             </div>
         </div>
     </nav>
+    @endif
     <main>
         @yield('content')
     </main>
+    @if(!auth()->check() || (auth()->check() && auth()->user()->role === 'user'))
+    <footer class="bg-light text-center py-4 mt-5 border-top" style="font-size:1rem;">
+        <div>Hubungi kami:</div>
+        <div>📞 0895-0174-9516</div>
+        <div>📷 <a href="https://instagram.com/seoniarsfurniture" target="_blank" rel="noopener" style="color:#222;text-decoration:underline;">@seoniarsfurniture</a></div>
+        <div>🏠 Jl. Raya Jepara No. 27, Kota Jepara</div>
+    </footer>
+    @endif
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html> 

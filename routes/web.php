@@ -22,7 +22,7 @@ Route::post('/login', function (Request $request) {
         if (auth()->user()->role === 'admin') {
             return redirect()->intended('/admin');
         } else {
-            return redirect()->intended('/dashboard');
+            return redirect()->route('welcome')->with('success', 'Selamat datang, ' . auth()->user()->name . '!');
         }
     }
     return back()->withErrors(['email' => 'Email atau password salah']);
@@ -46,7 +46,12 @@ Route::get('/admin', function () {
 
 // Daftar produk untuk user dan guest
 Route::get('products', function () {
-    $products = App\Models\Product::all();
+    $q = request('q');
+    $products = \App\Models\Product::query();
+    if ($q) {
+        $products->where('name', 'like', '%' . $q . '%');
+    }
+    $products = $products->get();
     return view('user.products.index', compact('products'));
 })->name('user.products.index');
 
@@ -92,6 +97,9 @@ Route::middleware(['auth'])->group(function () {
     // Profil user
     Route::get('profile', function () {
         $user = auth()->user();
+        if ($user->role === 'admin') {
+            return redirect()->route('admin.products.index');
+        }
         return view('user.profile', compact('user'));
     })->name('user.profile');
 });
@@ -103,3 +111,63 @@ Route::post('/logout', function (Request $request) {
     $request->session()->regenerateToken();
     return redirect('/');
 })->middleware('auth');
+
+Route::post('/profile/update', function (\Illuminate\Http\Request $request) {
+    $request->validate([
+        'first_name' => ['required', 'string', 'min:2', 'max:30', 'regex:/^[A-Za-z\s]+$/u'],
+        'last_name' => ['nullable', 'string', 'max:30', 'regex:/^[A-Za-z\s]*$/u'],
+    ], [
+        'first_name.required' => 'Nama depan wajib diisi.',
+        'first_name.min' => 'Nama depan minimal 2 karakter.',
+        'first_name.max' => 'Nama depan maksimal 30 karakter.',
+        'first_name.regex' => 'Nama depan hanya boleh huruf dan spasi.',
+        'last_name.max' => 'Nama belakang maksimal 30 karakter.',
+        'last_name.regex' => 'Nama belakang hanya boleh huruf dan spasi.',
+    ]);
+    $user = auth()->user();
+    $user->name = trim($request->first_name . ' ' . $request->last_name);
+    $user->save();
+    return redirect()->route('user.profile')->with('success', 'Nama berhasil diperbarui!');
+})->middleware('auth');
+
+// Form register
+Route::get('/register', function () {
+    if (auth()->check()) return redirect('/');
+    return view('register');
+})->name('register');
+
+// Proses register
+Route::post('/register', function (\Illuminate\Http\Request $request) {
+    $request->validate([
+        'first_name' => ['required', 'string', 'min:2', 'max:30', 'regex:/^[A-Za-z\s]+$/u'],
+        'last_name' => ['nullable', 'string', 'max:30', 'regex:/^[A-Za-z\s]*$/u'],
+        'email' => 'required|email|unique:users,email',
+        'password' => 'required|string|min:6|confirmed',
+    ], [
+        'first_name.required' => 'Nama depan wajib diisi.',
+        'first_name.min' => 'Nama depan minimal 2 karakter.',
+        'first_name.max' => 'Nama depan maksimal 30 karakter.',
+        'first_name.regex' => 'Nama depan hanya boleh huruf dan spasi.',
+        'last_name.max' => 'Nama belakang maksimal 30 karakter.',
+        'last_name.regex' => 'Nama belakang hanya boleh huruf dan spasi.',
+        'email.required' => 'Email wajib diisi.',
+        'email.email' => 'Format email tidak valid.',
+        'email.unique' => 'Email sudah terdaftar.',
+        'password.required' => 'Password wajib diisi.',
+        'password.min' => 'Password minimal 6 karakter.',
+        'password.confirmed' => 'Konfirmasi password tidak cocok.',
+    ]);
+    $user = new \App\Models\User();
+    $user->name = trim($request->first_name . ' ' . $request->last_name);
+    $user->email = $request->email;
+    $user->password = bcrypt($request->password);
+    $user->role = 'user';
+    $user->save();
+    Auth::login($user);
+    return redirect()->route('welcome')->with('success', 'Selamat datang, ' . $user->name . '!');
+});
+
+// Route untuk welcome agar bisa di-redirect
+Route::get('/welcome', function () {
+    return view('welcome');
+})->name('welcome');
